@@ -5,7 +5,6 @@ It starts a web server to listen redirect_uri, waiting for auth code.
 It optionally opens a browser window to guide a human user to manually login.
 After obtaining an auth code, the web server will automatically shut down.
 """
-import webbrowser
 import logging
 import socket
 from string import Template
@@ -35,6 +34,7 @@ def obtain_auth_code(listen_port, auth_uri=None):  # Historically only used in t
 
 
 def _browse(auth_uri):
+    import webbrowser  # Lazy import. Some distro may not have this.
     controller = webbrowser.get()  # Get a default controller
     # Some Linux Distro does not setup default browser properly,
     # so we try to explicitly use some popular browser, if we found any.
@@ -76,6 +76,9 @@ class _AuthCodeHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type', content_type)
         self.end_headers()
         self.wfile.write(body.encode("utf-8"))
+
+    def log_message(self, format, *args):
+        logger.debug(format, *args)  # To override the default log-to-stderr behavior
 
 
 class _AuthCodeHttpServer(HTTPServer):
